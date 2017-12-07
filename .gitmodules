@@ -1,0 +1,3 @@
+[submodule "auto_backup"]
+	path = auto_backup
+	url = https://github.com/Yenthe666/auto_backup
