@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  
+    <template id="assets_frontend_locator" inherit_id="website.assets_frontend" name="Assets Frontend Locator">
+        <xpath expr="." position="inside">
+            <link rel='stylesheet' href='/website_store_locator/static/src/css/website_store_locator.css' />
+            <script type="text/javascript" src='/website_store_locator/static/src/js/website_store_locator.js'></script>
+        </xpath>
+    </template>
+
+    <template id="store_locator_footer" inherit_id="website.footer_default" name="Shop Locator Footer">
+        <xpath expr='//a[@href="/page/website.contactus"]' position="after">
+            <li><a class="" href="/store/locator">Locate a Store</a></li>
+        </xpath>
+    </template>
+
+    <template id="store_locator_page" customize_show="True" name="Shop Locations">
+        <t t-call="website.layout">
+            <div>
+                <div class="oe_structure"></div>
+                <t t-call="website_store_locator.store_locator_view" />
+                <div class="oe_structure"></div>
+            </div>
+        </t>
+    </template>
+
+    <template id="store_locator_view">
+        <section class=" container-fluid stores-location mt8">
+            <div class="row">
+                <div class="panel-group">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <div class="col-md-2 search-text"><img src="/website_store_locator/static/src/img/search-location.png" alt="store search" />Store Search: </div>
+                            <div class="col-md-4" style="padding: 0px;">
+                                <div class="input-group">
+                                    <input type="text" name="search-input" id="search-input" class="form-control" placeholder="Search your store here..." />
+                                    <span class="input-group-btn">
+                                      <button class="btn btn-primary search-store" type="button"><i class="fa fa-search"/> Search</button>
+                                    </span>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary reset-loc"><i class="fa fa-refresh" /> Reset Map</button>
+                            <div class="clearfix" />
+                        </div>
+                        <div class="alert alert-info text-center fade in extra-information" style="display:none;"></div>
+                        <div class="panel-body">
+                            <div class="panel-group col-md-3 hidden-xs" id="store-menus">
+                                <t t-call="website_store_locator.locator_side_menu_panel_view" />
+                            </div>
+                            <div class="col-md-9" id="googleMap"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="store_locator_loder" style="display:none;"></div>
+                <span id="show-store-locator" data-show-store-locator="yes" />
+                <script type="text/javascript" t-att-src="website.get_map_api_url()"></script>
+            </div>
+        </section>
+    </template>
+
+    <template id="locator_side_menu_panel_view">
+        <div class="panel panel-default">
+            <div class="panel-heading store-list-panel"><span class="list-class"><i class="fa fa-list"/> Store List</span>
+                <span class='label label-primary pull-right store-lable'>0 Store(s)</span>
+            </div>
+        </div>
+        <div class="panel-body">
+            <div class="store-menu">
+                <ul class="nav nav-pills nav-stacked"></ul>
+            </div>
+        </div>
+    </template>
+
+</odoo>
