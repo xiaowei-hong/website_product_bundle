@@ -1,0 +1,707 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <template id="biztech_assets_frontend" inherit_id="website.assets_frontend" name="quick order">
+            <xpath expr="." position="inside">
+                <script src="/biztech_quick_order/static/src/js/custom.js" type="text/javascript"/>
+                <link href="/biztech_quick_order/static/src/css/quick_order.css" rel="stylesheet"/>
+            </xpath>
+        </template>
+        <!-- Quick Order Menu-->
+        <template id="biztech_quick_order_submenu" inherit_id="website.layout" name="Biztech Quick Order">
+            <xpath expr="//ul[@class='dropdown-menu js_usermenu']" position="inside">
+                <t t-if="website.user_id != user_id and website.quick_order">
+                    <li class="divider"/>
+                    <li>
+                        <a href="/managelist">
+                            <span t-esc="website.title"/>
+                        </a>
+                    </li>
+                </t>
+            </xpath>
+        </template>
+        <!--manage list template-->
+        <template id="manage_list_biztech" name="manage your list">
+            <t t-call="website.layout">
+                <div class="oe_structure"/>
+                <div class="container">
+                    <form method="post" name="js_manage_list">
+                        <input name="csrf_token" t-att-value="request.csrf_token()" type="hidden"/>
+                        <div class="container" id="alert" t-if="error_name">
+                            <div class="alert alert-danger alert-dismissible">
+                                <button aria-label="Close" class="close" data-dismiss="alert" type="button">
+                                    <span aria-hidden="true">X</span>
+                                </button>
+                                <strong>
+                                    <sapn t-esc="error_name"/>
+                                </strong>
+                            </div>
+                        </div>
+                        <div class="row customrow">
+                            <div class="col-md-6">
+                                <h2 t-if="website.title">
+                                    <span t-esc="website.title"/>
+                                </h2>
+                                <h4 t-if="website.srt_message">
+                                    <span t-esc="website.srt_message"/>
+                                </h4>
+                            </div>
+                        </div>
+                        <div class="row customrow2">
+                            <div class="col-md-9">
+                                <t t-if="len(products) &gt; 0">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <td>List Name</td>
+                                                <td>Edit</td>
+                                                <td>Delete</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-as="lists" t-foreach="products">
+                                                <tr t-if="lists.create_uid.id == website.env.user.id">
+                                                    <td>
+                                                        <a t-att-href="'/quickorder/%s'% slug(lists)">
+                                                            <span t-esc="lists.name"/>
+                                                        </a>
+                                                    </td>
+                                                    <td>
+                                                        <a class="fa fa-edit" data-original-title="Edit list" data-toggle="tooltip" t-att-href="'/editlist/%s'% slug(lists)"/>
+                                                    </td>
+                                                    <td>
+                                                        <a class="fa fa-trash-o" data-original-title="Remove List" data-toggle="tooltip" href="#" id="list_del" t-att-value="lists.id"/>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </t>
+                            </div>
+                        </div>
+                        <t t-if="len(products) &lt; 1">
+                            <div>
+                                <t t-set="message" t-value="website.return_title(website.title)"/>
+                                <span style="font-size: 30px;" t-esc="message"/>
+                            </div>
+                        </t>
+                        <div class="row customrow3">
+                            <div class="col-md-5">
+                                <div t-if="website.multi_list or len(products) &lt; 1 ">
+                                    <span>
+                                        <a class="btn btn-primary" data-target="#userlist" data-toggle="modal" href="#">Create new list</a>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="oe_structure"/>
+            </t>
+            <form action="/createlist" method="post" name="js_dialog">
+                <input name="csrf_token" t-att-value="request.csrf_token()" type="hidden"/>
+                <div class="modal fade" id="userlist" role="dialog">
+                    <div class="modal-dialog">
+                        <!-- Modal content-->
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button class="close" data-dismiss="modal" type="button">x</button>
+                                <h4 class="modal-title">Create Your List</h4>
+                            </div>
+                            <div class="modal-body">
+                                <div class="customdiv">
+                                    <label class="control-label" for="create_name">List name</label>
+                                    <input id="biz_list_name" name="create_name" required="required" size="20" type="text"/>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn btn-default" data-dismiss="modal" type="button">Close</button>
+                                <button class="btn btn-default" id="biztech_model_create_list" type="submit">Create</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </template>
+        <template id="quick_products_biztech" name="Quick Order Products">
+            <t t-call="website.layout">
+                <div class="oe_structure"/>
+                <div class="container">
+                    <input name="listid" t-att-value="listid" type="hidden"/>
+                    <input name="list_obj" t-att-value="slug(list_obj)" type="hidden"/>
+                    <div class="row">
+                        <div class="col-md-2 custommodel1">
+                            <h3 t-if="listname">
+                                <span t-esc="listname"/>
+                            </h3>
+                        </div>
+                        <div class="col-md-2 custommodel2" t-if="website.multi_list">
+                            <a class="btn btn-primary custom_manage_all" href="/managelist">Manage all list</a>
+                        </div>
+                    </div>
+                    <input id="add_to_cart_list" name="cartlist" t-att-value="cartlist" type="hidden"/>
+                    <form method="post" name="js_quickorder">
+                        <input name="csrf_token" t-att-value="request.csrf_token()" type="hidden"/>
+                        <div class="col-md-3"/>
+                        <div class="col-md-9 cusromcol-md-9">
+                            <table>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <div class="input-group customsearch">
+                                                <input class="search-query form-control" name="search" placeholder="Search..." t-att-value="search" type="text"/>
+                                                <span class="input-group-btn">
+                                                    <a class="btn btn-default a-submit" id="btn_custom_search_quickorder">
+                                                        <i class="fa fa-search"/>
+                                                    </a>
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div/>
+                                        </td>
+                                        <td>
+                                            <div class="custompager">
+                                                <div class="products_pager">
+                                                    <t t-call="website.pager"/>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-md-12">
+                            <t t-if="len(product) &gt; 0">
+                                <div>
+                                    <a class="btn btn-primary custommodel2" data-dismiss="modal" id="biztech__quick_order_add_to_cart">Add to cart</a>
+                                </div>
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <td/>
+                                            <td colspan="3">Product Name</td>
+                                            <td>Price</td>
+                                            <td>Quantity</td>
+                                            <td>Delete</td>
+                                            <td>Total</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-as="t_product" t-foreach="product">
+                                            <t t-if="t_product.product_variant_count &gt; 1">
+                                                <tr>
+                                                    <td>
+                                                        <div class="oe_product_image">
+                                                            <a itemprop="url" t-att-href="'/shop/product/%s' % slug(t_product)" target="_blank">
+                                                                <img class="img img-responsive" itemprop="image" t-att-alt="t_product.name" t-att-src="website.image_url(t_product, 'image','150x150')"/>
+                                                            </a>
+                                                        </div>
+                                                    </td>
+                                                    <td class="tablecustom" colspan="3">
+                                                        <h5>
+                                                            <strong>
+                                                                <a itemprop="name" t-att-href="'/shop/product/%s' % slug(t_product)" t-field="t_product.name" target="_blank"/>
+                                                            </strong>
+                                                        </h5>
+                                                        <t t-if="t_product.product_variant_count &gt; 1">
+                                                            <table class="table table-sm">
+                                                                <tbody>
+                                                                    <t t-as="variant" t-foreach="t_product.product_variant_ids">
+                                                                        <t t-if="variant.id in product_ids">
+                                                                            <tr class="table-issue">
+                                                                                <t t-as="attributes" t-foreach="variant.attribute_value_ids">
+                                                                                    <td>
+                                                                                        <span t-esc="attributes.name"/>
+                                                                                    </td>
+                                                                                </t>
+                                                                            </tr>
+                                                                        </t>
+                                                                    </t>
+                                                                </tbody>
+                                                            </table>
+                                                        </t>
+                                                    </td>
+                                                    <td class="priceScroll custom-price">
+                                                        <h5>
+                                                            <strong class="custom-h5">P</strong>
+                                                        </h5>
+                                                        <table class="table">
+                                                            <tbody>
+                                                                <t t-as="variant" t-foreach="t_product.product_variant_ids">
+                                                                    <t t-if="variant.id in product_ids">
+                                                                        <tr class="table-issue">
+                                                                            <td>
+                                                                                <table>
+                                                                                    <tr>
+                                                                                        <td>
+                                                                                            <div class="product_price" itemprop="offers" itemscope="itemscope" itemtype="http://schema.org/Offer" t-if="variant">
+                                                                                    <b>
+                                                                                        <t t-if="variant.lst_price - compute_price(variant.id) &gt; 0.1">
+                                                                                            <del class="text-danger mr8" style="white-space: nowrap;" t-field="variant.lst_price" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                                                                                        </t>
+                                                                                        </b>
+                                                                                    </div>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td>
+                                                                                        <b>
+                                                                                            <span style="white-space: nowrap;" t-esc="compute_price(variant.id)" />
+                                                                                        <span t-esc="website.currency_id.symbol"/>
+                                                                                        <span itemprop="price" style="display:none;" t-esc="variant.price"/>
+                                                                                        <span itemprop="priceCurrency" style="display:none;" t-esc="website.currency_id.name"/>
+                                                                                    </b>    
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </table>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </t>
+                                                                </t>
+                                                            </tbody>
+                                                        </table>
+                                                    </td>
+                                                    <td class="moveScroll">
+                                                        <h5>
+                                                            <strong class="custom-h5">quantity</strong>
+                                                        </h5>
+                                                        <table class="table">
+                                                            <tbody>
+                                                                <t t-as="variant" t-foreach="t_product.product_variant_ids">
+                                                                    <t t-if="variant.id in product_ids">
+                                                                        <tr class="table-issue">
+                                                                            <td>
+                                                                                <div class="css_quantity input-group oe_website_spinner">
+                                                                                    <span class="input-group-addon">
+                                                                                        <a class="mb8 js_add_cart_json biztech_cart" t-attf-href="#">
+                                                                                            <i class="fa fa-minus"/>
+                                                                                        </a>
+                                                                                    </span>
+                                                                                    <input class="js_quantity form-control biztech_quantity_input" data-min="0" id="js_quantity_biztech" t-att-name="variant.id" type="text" value="0"/>
+                                                                                    <span class="input-group-addon">
+                                                                                        <a class="mb8 float_left js_add_cart_json biztech_cart" t-attf-href="#">
+                                                                                            <i class="fa fa-plus"/>
+                                                                                        </a>
+                                                                                    </span>
+                                                                                </div>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </t>
+                                                                </t>
+                                                            </tbody>
+                                                        </table>
+                                                    </td>
+                                                    <td>
+                                                        <h5>
+                                                            <strong>
+                                                                <a class="fa fa-trash-o custom-delete" href="#" id="list_all_item_del" t-att-value="t_product.id"/>
+                                                            </strong>
+                                                        </h5>
+                                                        <table class="table">
+                                                            <tbody>
+                                                                <t t-as="variant" t-foreach="t_product.product_variant_ids">
+                                                                    <t t-if="variant.id in product_ids">
+                                                                        <tr class="custom-row-hight table-issue">
+                                                                            <td>
+                                                                                <a class="fa fa-trash-o" href="#" id="list_item_del" t-att-value="variant.id"/>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </t>
+                                                                </t>
+                                                            </tbody>
+                                                        </table>
+                                                    </td>
+                                                    <td>
+                                                        <h5>
+                                                            <strong class="custom-h5">quantity</strong>
+                                                        </h5>
+                                                        <table class="table">
+                                                            <tbody>
+                                                                <t t-as="variant" t-foreach="t_product.product_variant_ids">
+                                                                    <t t-if="variant.id in product_ids">
+                                                                        <tr class="custom-row-hight table-issue">
+                                                                            <td>
+                                                                                <div>
+                                                                                    <span>
+                                                                                        <span itemprop="priceCurrency" t-esc="website.currency_id.symbol"/>
+                                                                                        <label data-min="0" t-att-id="variant.id" value="0">
+                                                                                            <input disabled="disabled" class="custom-input-total" t-att-data-min="0" t-att-id="variant.id" value="0"/></label>
+                                                                                    </span>
+                                                                                </div>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </t>
+                                                                </t>
+                                                            </tbody>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                            <t t-if="t_product.product_variant_count &lt; 2">
+                                                <tr>
+                                                    <td>
+                                                        <div class="oe_product_image">
+                                                            <a itemprop="url" t-att-href="'/shop/product/%s' % slug(t_product)" target="_blank">
+                                                                <img class="img img-responsive" itemprop="image" t-att-alt="t_product.name" t-att-src="website.image_url(t_product, 'image','150x150')"/>
+                                                            </a>
+                                                        </div>
+                                                    </td>
+                                                    <td colspan="3">
+                                                        <h5>
+                                                            <strong>
+                                                                <a itemprop="name" t-att-href="'/shop/product/%s' % slug(t_product)" t-field="t_product.name" target="_blank"/>
+                                                            </strong>
+                                                        </h5>
+                                                    </td>
+                                                    <td class="custom-price">
+                                                        <table>
+                                                            <tr>
+                                                                <td>
+                                                                    <div class="product_price" itemprop="offers" itemscope="itemscope" itemtype="http://schema.org/Offer" t-if="t_product">
+                                                            <b>
+                                                                <t t-if="website.get_variants(t_product).lst_price - compute_price(website.get_variants(t_product).id) &gt; 0.1">
+                                                                    <del class="text-danger mr8" style="white-space: nowrap;" t-field="website.get_variants(t_product).lst_price" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"
+                                                                        />
+                                                                </t>
+                                                            </b>
+                                                        </div>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>
+                                                                    <b>
+                                                                    <span style="white-space: nowrap;" t-esc="compute_price(website.get_variants(t_product).id)"/>
+                                                                <span t-esc="website.currency_id.symbol"/>
+                                                                <span itemprop="price" style="display:none;" t-esc="website.get_variants(t_product).price"/>
+                                                                <span itemprop="priceCurrency" style="display:none;" t-esc="website.currency_id.name"/>
+                                                            </b>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                        
+                                                    </td>
+                                                    <td>
+                                                        <div>
+                                                            <div class="css_quantity input-group oe_website_spinner">
+                                                                <span class="input-group-addon">
+                                                                    <a class="mb8 js_add_cart_json biztech_cart" t-attf-href="#">
+                                                                        <i class="fa fa-minus"/>
+                                                                    </a>
+                                                                </span>
+                                                                <!-- t-att-id="'dopprod-%s' % t_product.id" -->
+                                                                <input class="js_quantity form-control" data-min="0" id="js_quantity_biztech" t-att-name="website.get_variants(t_product).id" type="text" value="0"/>
+                                                                <span class="input-group-addon">
+                                                                    <a class="mb8 float_left js_add_cart_json biztech_cart" t-attf-href="#">
+                                                                        <i class="fa fa-plus"/>
+                                                                    </a>
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div>
+                                                            <a class="fa fa-trash-o custom-delete" href="#" id="list_item_del" t-att-value="website.get_variants(t_product).id"/>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div>
+                                                            <span class="custom_total">
+                                                                <span itemprop="priceCurrency" t-esc="website.currency_id.symbol"/>
+                                                                <label t-att-id="website.get_variants(t_product).id">
+                                                                    <input disabled="disabled" class="custom-input-total" t-att-data-min="0" t-att-id="website.get_variants(t_product).id" value="0"/></label>
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </t>
+                            <t t-if="len(product) &lt; 1 and not search_obj">
+                                <div clas="customrow3">
+                                    <h1>Sorry No products availabel in your list</h1>
+                                    <a t-att-href="'/editlist/%s' % slug(list_obj)">Add some Products</a>
+                                </div>
+                            </t>
+                            <t t-if="len(product) &lt; 1 and search_obj">
+                                <div>
+                                    <h1>Sorry ! no product for your search &quot;
+                                        
+                                        
+                                        
+                                        <span t-esc="search_obj"/>
+                                        &quot;</h1>
+                                </div>
+                            </t>
+                        </div>
+                        <div class="oe_structure mb32"/>
+                    </form>
+                </div>
+            </t>
+        </template>
+        <template id="edit_products_biztech" name="Edit Quick Order Products">
+            <t t-call="website.layout">
+                <div class="oe_structure"/>
+                <div class="container">
+                    <input name="listid" t-att-value="listid" type="hidden"/>
+                    <div class="row">
+                        <div class="col-lg-4 custommodel1">
+                            <h3 t-if="edit_list_name">
+                                <span t-esc="edit_list_name"/>
+                            </h3>
+                        </div>
+                        <div class="col-lg-4 custommodel2">
+                            <div>
+                                <table class="table borderless">
+                                    <tbody>
+                                        <tr>
+                                            <td t-if="website.multi_list">
+                                                <span>
+                                                    <a class="btn btn-primary" href="/managelist">Manage all list</a>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span>
+                                                    <a class="btn btn-primary" t-att-href="'/quickorder/%s' % slug(list_obj)">Show list products</a>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <form method="post" name="js_edit_product">
+                        <input name="csrf_token" t-att-value="request.csrf_token()" type="hidden"/>
+                        <div class="col-md-3"/>
+                        <div class="col-md-9 cusromcol-md-9">
+                            <table>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <div class="input-group customsearch">
+                                                <input class="search-query form-control" name="search" placeholder="Search..." t-att-value="search" type="text"/>
+                                                <span class="input-group-btn">
+                                                    <a class="btn btn-default a-submit" id="btn_custom_search_editlist">
+                                                        <i class="fa fa-search"/>
+                                                    </a>
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div/>
+                                        </td>
+                                        <td>
+                                            <div class="custompager">
+                                                <div class="products_pager">
+                                                    <t t-call="website.pager"/>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-md-12">
+                            <t t-if="len(products) &gt; 0">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <td/>
+                                            <td colspan="3">
+                                                <strong>Products Name</strong>
+                                            </td>
+                                            <td>
+                                                <strong>Price</strong>
+                                            </td>
+                                            <td/>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-as="t_product" t-foreach="products">
+                                            <t t-if="t_product.product_variant_count &gt; 1">
+                                                <tr>
+                                                    <td>
+                                                        <div class="oe_product_image">
+                                                            <a itemprop="url" t-att-href="'/shop/product/%s' % slug(t_product)" target="_blank">
+                                                                <img class="img img-responsive" itemprop="image" t-att-alt="t_product.name" t-att-src="website.image_url(t_product, 'image','150x150')"/>
+                                                            </a>
+                                                        </div>
+                                                    </td>
+                                                    <td class="tablecustom" colspan="3">
+                                                        <h5>
+                                                            <strong>
+                                                                <a itemprop="name" t-att-href="'/shop/product/%s' % slug(t_product)" t-field="t_product.name" target="_blank"/>
+                                                            </strong>
+                                                        </h5>
+                                                        <t t-if="t_product.product_variant_count &gt; 1">
+                                                            <table class="table">
+                                                                <tbody>
+                                                                    <t t-as="variant" t-foreach="t_product.product_variant_ids">
+                                                                        <t t-if="variant.id not in temp">
+                                                                            <tr class="table-issue">
+                                                                                <t t-as="attributes" t-foreach="variant.attribute_value_ids">
+                                                                                    <td>
+                                                                                        <span t-esc="attributes.name"/>
+                                                                                    </td>
+                                                                                </t>
+                                                                            </tr>
+                                                                        </t>
+                                                                    </t>
+                                                                </tbody>
+                                                            </table>
+                                                        </t>
+                                                    </td>
+                                                    <td>
+                                                        <h5>
+                                                            <strong class="custom-h5">Price</strong>
+                                                        </h5>
+                                                        <table class="table">
+                                                            <tbody>
+                                                                <t t-as="variant" t-foreach="t_product.product_variant_ids">
+                                                                    <t t-if="variant.id not in temp">
+                                                                        <tr class="table-issue">
+                                                                            <td>
+                                                                                <div class="product_price" itemprop="offers" itemscope="itemscope" itemtype="http://schema.org/Offer" t-if="variant">
+                                                                                    <b>
+                                                                                        <t t-if="variant.lst_price - compute_price(variant.id) &gt; 0.1">
+                                                                                            <del class="text-danger mr8" style="white-space: nowrap;" t-field="variant.lst_price" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                                                                                        </t>
+                                                                                        <span style="white-space: nowrap;" t-esc="compute_price(variant.id)" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                                                                                        <span t-esc="website.currency_id.symbol"/>
+                                                                                        <span itemprop="price" style="display:none;" t-esc="variant.price"/>
+                                                                                        <span itemprop="priceCurrency" style="display:none;" t-esc="website.currency_id.name"/>
+                                                                                    </b>
+                                                                                </div>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </t>
+                                                                </t>
+                                                            </tbody>
+                                                        </table>
+                                                    </td>
+                                                    <td class="moveScroll">
+                                                        <h5>
+                                                            <input class="check" id="edit_add_allto_list" t-att-name="t_product.id" t-att-value="t_product.name" type="checkbox"/>Move all to list</h5>
+                                                        <table class="table">
+                                                            <tbody>
+                                                                <t t-as="variant" t-foreach="t_product.product_variant_ids">
+                                                                    <t t-if="variant.id not in temp">
+                                                                        <tr class="table-issue">
+                                                                            <td>
+                                                                                <input class="check" id="edit_add_list" t-att-name="variant.id" t-att-value="t_product.name" type="checkbox"/>
+                                                                                <span>Move To list</span>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </t>
+                                                                </t>
+                                                            </tbody>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                            <t t-if="t_product.product_variant_count &lt; 2">
+                                                <t t-if="t_product.id">
+                                                    <tr>
+                                                        <td>
+                                                            <div class="oe_product_image">
+                                                                <a itemprop="url" t-att-href="'/shop/product/%s' % slug(t_product)" target="_blank">
+                                                                    <img class="img img-responsive" itemprop="image" t-att-alt="t_product.name" t-att-src="website.image_url(t_product, 'image','150x150')"/>
+                                                                </a>
+                                                            </div>
+                                                        </td>
+                                                        <td colspan="3">
+                                                            <h5>
+                                                                <strong>
+                                                                    <a itemprop="name" t-att-href="'/shop/product/%s' % slug(t_product)" t-field="t_product.name" target="_blank"/>
+                                                                </strong>
+                                                            </h5>
+                                                        </td>
+                                                        <td>
+                                                            <div class="product_price" itemprop="offers" itemscope="itemscope" itemtype="http://schema.org/Offer" t-if="t_product">
+                                                                <b>
+                                                                    <t t-if="website.get_variants(t_product).lst_price - compute_price(website.get_variants(t_product).id) &gt; 0.1">
+                                                                        <del class="text-danger mr8" style="white-space: nowrap;" t-esc="website.get_variants(t_product).lst_price" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                                                                    </t>
+                                                                    <span style="white-space: nowrap;" t-esc="compute_price(website.get_variants(t_product).id)"/>
+                                                                    <span t-esc="website.currency_id.symbol"/>
+                                                                    <span itemprop="price" style="display:none;" t-esc="website.get_variants(t_product).price"/>
+                                                                    <span itemprop="priceCurrency" style="display:none;" t-esc="website.currency_id.name"/>
+                                                                </b>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <input class="check" id="edit_add_list" t-att-name="t_product.product_variant_ids.id" t-att-value="t_product.name" type="checkbox"/>
+                                                            <span>Move to list</span>
+                                                        </td>
+                                                    </tr>
+                                                </t>
+                                            </t>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </t>
+                            <t t-if="len(products) &lt; 1">
+                                <div clas="customrow3">
+                                    <h1>No product found for search youe search &quot;
+                                        <span t-esc="search_obj"/>
+                                        &quot;</h1>
+                                </div>
+                            </t>
+                        </div>
+                        <div class="oe_structure mb32"/>
+                    </form>
+                </div>
+            </t>
+        </template>
+        <template id="biztech_peoduct_quick_order" inherit_id="website_sale.product">
+            <xpath expr="//form[@class='js_add_cart_variants']" position="inside">
+                <div id="checkbox_list">
+                    <t t-if="website.user_id == user_id and website.quick_order">
+                        <a class="btn btn-success btn-lg mt8" t-attf-href="/web/login?redirect=%2Fshop%2Fproduct%2F#{slug(product)}">
+                            <span>Add to Quick List</span>
+                        </a>
+                    </t>
+                    <t t-if="website.user_id != user_id and website.quick_order">
+                        <a class="btn btn-success btn-lg mt8" id="add_to_list_product_btn">
+                            <span>Add to Quick List</span>
+                        </a>
+                    </t>
+                    <div class="container cutom_div_list" id="alert">
+                        <div class="alert alert-success alert-dismissible">
+                            <button aria-label="Close" class="close" data-dismiss="alert" type="button">
+                                <span aria-hidden="true">X</span>
+                            </button>
+                            <strong>Success!</strong>Product Successfully added to your list.</div>
+                    </div>
+                </div>
+                <div class="cutom_div_list" id="custom_list_div">
+                    <t t-if="website.get_order()">
+                        <h2>Choose List</h2>
+                        <div class="dropdown">
+                            <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" type="button">Lists
+                                <span class="caret"/></button>
+                                <ul class="dropdown-menu" id="list_custom">
+                                <t t-as="lists" t-foreach="website.get_order()">
+                                    <li>
+                                        <a href="#" t-att-name="lists.name" t-att-value="lists.id">
+                                            <span t-esc="lists.name"/>
+                                        </a>
+                                    </li>
+                                </t>
+                            </ul>
+                        </div>
+                    </t>
+                    <t t-if="not website.get_order()">
+                        <div>
+                            <h3>Sorry no quick list available</h3>
+                            <a href="/managelist">Clicke here to make new list</a>
+                        </div>
+                    </t>
+                </div>
+            </xpath>
+        </template>
+    </data>
+</odoo>
