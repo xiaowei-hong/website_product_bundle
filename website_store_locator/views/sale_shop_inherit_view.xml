@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <record id="wk_sale_shop_form_inherit" model="ir.ui.view">
+        <field name="name">sale.shop</field>
+        <field name="model">sale.shop</field>
+        <field name="inherit_id" ref="sale_shop.wk_sale_shop_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//group" position="replace">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" name="toggle_store_show_hide" type="object" icon="fa-globe">
+                            <field name="store_active" widget="website_button" />
+                        </button>
+                    </div>
+                    <field name="store_image" widget="image" class="oe_left oe_avatar" />
+                    <div class="oe_left">
+                        <h1>
+                                <field name="name" placeholder="Name"/>
+                            </h1>
+                    </div>
+                    <group name="address">
+                        <group string="Shop Address" name="add">
+                            <label for="street" string="Address" />
+                            <div>
+                                <field name="street" placeholder="Street" />
+                                <field name="city" placeholder="City" style="width: 40%" />
+                                <field name="store_state" placeholder="State" style="width: 37%" />
+                                <field name="zipcode" placeholder="ZIP" style="width: 23%" />
+                                <field name="country" placeholder="Country" />
+                                <field name="store_web" placeholder="ex: www.abc.com" />
+                            </div>
+                        </group>
+                        <group string="Other Information" name="other">
+                            <field name="store_phone" placeholder="Phone Number" />
+                            <field name="store_mob" placeholder="Mobile Number" />
+                            <field name="store_fax" placeholder="Fax Number" />
+                            <field name="store_email" placeholder="email:abc@xyz.com" />
+                        </group>
+                    </group>
+                    <group name="coordinates">
+                        <field name="coordinates_calc" widget="radio" />
+                    </group>
+                    <group col="4" name="store_long" string="Store Longitude and latitude">
+                        <field name="store_lat" attrs="{'required':[('coordinates_calc','==','manual')], 'readonly':[('coordinates_calc','==','by_addr')]}" />
+                        <field name="store_long" attrs="{'required':[('coordinates_calc','==','manual')], 'readonly':[('coordinates_calc','==','by_addr')]}" />
+                    </group>
+                </sheet>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="wk_sale_shop_tree_inherit" model="ir.ui.view">
+        <field name="name">sale.shop</field>
+        <field name="model">sale.shop</field>
+        <field name="inherit_id" ref="sale_shop.wk_sale_shop_tree" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="replace">
+                <field name="name" string="Store Name" />
+                <field name="store_lat" />
+                <field name="store_long" />
+                <field name="store_active" />
+            </xpath>
+        </field>
+    </record>
+
+    <menuitem id="sale_shop.wk_shop_menu" name="Store" parent="sales_team.menu_sale_config" action="sale_shop.wk_sale_shop_action" sequence="5" />
+
+</odoo>
