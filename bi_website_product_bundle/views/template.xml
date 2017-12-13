@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+	<!-- Product listing page added Pack product ribbon -->
+		<template id="product_pack_list" inherit_id="website_sale.products_item">
+			<xpath expr="//div[@class='ribbon-wrapper']" position="replace">
+				<div class="ribbon-wrapper">
+				    <div class="ribbon btn btn-danger">Pack</div>
+				 </div>
+			
+			</xpath>
+	
+		</template>
+
+    <template id="product_page" inherit_id="website_sale.product_price">
+		<xpath expr="//div/h4[@class='hidden oe_not_available bg-warning']"
+			position="after">
+			<t t-if="product.is_pack == True">
+				<button type="button" class="btn btn-primary" data-toggle="modal"
+					data-target="#product_bundle_model" style="margin-bottom: 10px;">Bundle Details</button>
+			</t>
+			<!-- Modal -->
+			<div id="product_bundle_model" class="modal fade" role="dialog">
+				<div class="modal-dialog modal-lg">
+					Modal content
+					<div class="modal-content">
+
+						<div class="modal-header">
+							<h4 class="modal-title" id="bi_product_label">Pack Products</h4>
+							<button type="button" class="btn btn-primary"
+								data-dismiss="modal" style="margin-left: 91%;">Close
+							</button>
+
+						</div>
+						<div class="modal-body" style="clear:both">
+							<t t-foreach="product.pack_ids" t-as="pack">
+								<div class="col-md-3">
+									<div class="image_div">
+										<span t-field="pack.bi_image"
+											t-field-options="{&quot;widget&quot;: &quot;image&quot;, &quot;class&quot;: &quot;img-rounded&quot;}" />
+									</div>
+									<div class="text">
+										<span
+											style="display:block;color:#42A5F5;margin-bottom:6pxpx;margin-top:-10px"
+											t-esc="pack.product_id.name" />
+										Unit Price
+										<span t-esc="pack.product_id.lst_price" class="bi_unit_price"
+											/>
+										<div>
+											Quantity
+											<span style="margin-left:10px; color:#B71C1C;" t-esc="pack.qty_uom" />
+										</div>
+									</div>
+								</div>
+							</t>
+						</div>
+						<div class="modal-footer">
+						</div>
+					</div>
+				</div>
+			</div>
+
+		</xpath>
+	</template>
+    </data>
+</openerp>
+
